@@ -1,8 +1,6 @@
-TODO: Review this README and add or modify as necessary.
-
 ## /etc/hosts provider for octoDNS
 
-An [octoDNS](https://github.com/octodns/octodns/) provider that targets [/etc/hosts](https://github.com/octodns/octodns-etchosts/).
+An [octoDNS](https://github.com/octodns/octodns/) provider that creates a "best effort" static/emergency content that can be used in /etc/hosts to resolve things. A, AAAA records are supported and ALIAS and CNAME records will be included when they can be mapped within the zone.
 
 ### Installation
 
@@ -38,21 +36,20 @@ octodns_etchosts==0.0.1
 providers:
   etchosts:
     class: octodns_etchosts.EtcHostsProvider
-    # TODO
+    # The output director for the hosts file <zone>.hosts
+    directory: ./hosts
 ```
 
 ### Support Information
 
 #### Records
 
-TODO: All octoDNS record types are supported.
+EtcHostsProvider supports A and AAAA, and has partial support for tracing ALIAS and CNAME records when they can be resolved within the zone.
 
 #### Dynamic
 
-TODO: EtcHostsProvider does not support dynamic records.
+EtcHostsProvider does not support dynamic records.
 
 ### Developement
 
 See the [/script/](/script/) directory for some tools to help with the development process. They generally follow the [Script to rule them all](https://github.com/github/scripts-to-rule-them-all) pattern. Most useful is `./script/bootstrap` which will create a venv and install both the runtime and development related requirements. It will also hook up a pre-commit hook that covers most of what's run by CI.
-
-TODO: any provider specific setup, a docker compose to run things locally etc?

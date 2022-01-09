@@ -27,12 +27,11 @@ setup(
     name='octodns-etchosts',
     packages=('octodns_etchosts',),
     python_requires='>=3.6',
-    install_requires=('octodns>=0.9.14', 'TODO: other requirements'),
+    install_requires=('octodns>=0.9.14'),
     url='https://github.com/octodns/octodns-etchosts',
     version=version(),
     tests_require=(
         'nose',
         'nose-no-network',
-        'TODO: other test-time requirements'
     ),
 )
