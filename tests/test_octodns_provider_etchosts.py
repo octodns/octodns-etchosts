@@ -40,10 +40,10 @@ class TestEtcHostsProvider(TestCase):
 
         # We never populate anything, when acting as a source
         source.populate(zone, target=source)
-        self.assertEquals(0, len(zone.records))
+        self.assertEqual(0, len(zone.records))
         # Same if we're acting as a target
         source.populate(zone)
-        self.assertEquals(0, len(zone.records))
+        self.assertEqual(0, len(zone.records))
 
         record = Record.new(zone, '', {
             'ttl': 60,
@@ -107,11 +107,11 @@ class TestEtcHostsProvider(TestCase):
 
             # We add everything
             plan = target.plan(zone)
-            self.assertEquals(len(zone.records), len(plan.changes))
+            self.assertEqual(len(zone.records), len(plan.changes))
             self.assertFalse(isfile(hosts_file))
 
             # Now actually do it
-            self.assertEquals(len(zone.records), target.apply(plan))
+            self.assertEqual(len(zone.records), target.apply(plan))
             self.assertTrue(isfile(hosts_file))
 
             with open(hosts_file) as fh:
@@ -132,7 +132,7 @@ class TestEtcHostsProvider(TestCase):
 
             # second empty run that won't create dirs and overwrites file
             plan = Plan(zone, zone, [], True)
-            self.assertEquals(0, target.apply(plan))
+            self.assertEqual(0, target.apply(plan))
 
     def test_cname_loop(self):
         source = EtcHostsProvider('test', 'not-used')
@@ -141,10 +141,10 @@ class TestEtcHostsProvider(TestCase):
 
         # We never populate anything, when acting as a source
         source.populate(zone, target=source)
-        self.assertEquals(0, len(zone.records))
+        self.assertEqual(0, len(zone.records))
         # Same if we're acting as a target
         source.populate(zone)
-        self.assertEquals(0, len(zone.records))
+        self.assertEqual(0, len(zone.records))
 
         record = Record.new(zone, 'start', {
             'ttl': 60,
@@ -173,11 +173,11 @@ class TestEtcHostsProvider(TestCase):
 
             # We add everything
             plan = target.plan(zone)
-            self.assertEquals(len(zone.records), len(plan.changes))
+            self.assertEqual(len(zone.records), len(plan.changes))
             self.assertFalse(isfile(hosts_file))
 
             # Now actually do it
-            self.assertEquals(len(zone.records), target.apply(plan))
+            self.assertEqual(len(zone.records), target.apply(plan))
             self.assertTrue(isfile(hosts_file))
 
             with open(hosts_file) as fh:

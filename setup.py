@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
 def descriptions():
@@ -25,13 +25,15 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     name='octodns-etchosts',
-    packages=('octodns_etchosts',),
+    packages=find_packages(),
     python_requires='>=3.6',
-    install_requires=('octodns>=0.9.14'),
+    install_requires=(
+        'octodns>=0.9.14',
+    ),
     url='https://github.com/octodns/octodns-etchosts',
     version=version(),
     tests_require=(
-        'nose',
-        'nose-no-network',
+        'pytest',
+        'pytest-network',
     ),
 )
