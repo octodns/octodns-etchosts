@@ -23,8 +23,12 @@ class EtcHostsProvider(BaseProvider):
         self.directory = directory
 
     def populate(self, zone, target=False, lenient=False):
-        self.log.debug('populate: name=%s, target=%s, lenient=%s', zone.name,
-                       target, lenient)
+        self.log.debug(
+            'populate: name=%s, target=%s, lenient=%s',
+            zone.name,
+            target,
+            lenient,
+        )
 
         # We never act as a source, at least for now, if/when we do we still
         # need to noop `if target`
@@ -33,8 +37,9 @@ class EtcHostsProvider(BaseProvider):
     def _apply(self, plan):
         desired = plan.desired
         changes = plan.changes
-        self.log.debug('_apply: zone=%s, len(changes)=%d', desired.name,
-                       len(changes))
+        self.log.debug(
+            '_apply: zone=%s, len(changes)=%d', desired.name, len(changes)
+        )
         cnames = {}
         values = {}
         for record in sorted([c.new for c in changes]):

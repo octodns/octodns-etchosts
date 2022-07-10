@@ -16,7 +16,6 @@ from octodns_etchosts import EtcHostsProvider
 
 
 class TemporaryDirectory(object):
-
     def __init__(self, delete_on_exit=True):
         self.delete_on_exit = delete_on_exit
 
@@ -32,7 +31,6 @@ class TemporaryDirectory(object):
 
 
 class TestEtcHostsProvider(TestCase):
-
     def test_provider(self):
         source = EtcHostsProvider('test', 'not-used')
 
@@ -45,58 +43,50 @@ class TestEtcHostsProvider(TestCase):
         source.populate(zone)
         self.assertEqual(0, len(zone.records))
 
-        record = Record.new(zone, '', {
-            'ttl': 60,
-            'type': 'ALIAS',
-            'value': 'www.unit.tests.'
-        })
+        record = Record.new(
+            zone, '', {'ttl': 60, 'type': 'ALIAS', 'value': 'www.unit.tests.'}
+        )
         zone.add_record(record)
 
-        record = Record.new(zone, 'www', {
-            'ttl': 60,
-            'type': 'AAAA',
-            'value': '2001:4860:4860::8888',
-        })
+        record = Record.new(
+            zone,
+            'www',
+            {'ttl': 60, 'type': 'AAAA', 'value': '2001:4860:4860::8888'},
+        )
         zone.add_record(record)
-        record = Record.new(zone, 'www', {
-            'ttl': 60,
-            'type': 'A',
-            'values': ['1.1.1.1', '2.2.2.2'],
-        })
-        zone.add_record(record)
-
-        record = record.new(zone, 'v6', {
-            'ttl': 60,
-            'type': 'AAAA',
-            'value': '2001:4860:4860::8844',
-        })
+        record = Record.new(
+            zone,
+            'www',
+            {'ttl': 60, 'type': 'A', 'values': ['1.1.1.1', '2.2.2.2']},
+        )
         zone.add_record(record)
 
-        record = record.new(zone, 'start', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'middle.unit.tests.',
-        })
-        zone.add_record(record)
-        record = record.new(zone, 'middle', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'unit.tests.',
-        })
+        record = record.new(
+            zone,
+            'v6',
+            {'ttl': 60, 'type': 'AAAA', 'value': '2001:4860:4860::8844'},
+        )
         zone.add_record(record)
 
-        record = record.new(zone, 'ext', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'github.com.',
-        })
+        record = record.new(
+            zone,
+            'start',
+            {'ttl': 60, 'type': 'CNAME', 'value': 'middle.unit.tests.'},
+        )
+        zone.add_record(record)
+        record = record.new(
+            zone, 'middle', {'ttl': 60, 'type': 'CNAME', 'value': 'unit.tests.'}
+        )
         zone.add_record(record)
 
-        record = record.new(zone, '*', {
-            'ttl': 60,
-            'type': 'A',
-            'value': '3.3.3.3',
-        })
+        record = record.new(
+            zone, 'ext', {'ttl': 60, 'type': 'CNAME', 'value': 'github.com.'}
+        )
+        zone.add_record(record)
+
+        record = record.new(
+            zone, '*', {'ttl': 60, 'type': 'A', 'value': '3.3.3.3'}
+        )
         zone.add_record(record)
 
         with TemporaryDirectory() as td:
@@ -124,8 +114,9 @@ class TestEtcHostsProvider(TestCase):
                 self.assertTrue('# unit.tests -> www.unit.tests' in data)
                 self.assertTrue('1.1.1.1\tunit.tests' in data)
 
-                self.assertTrue('# start.unit.tests -> middle.unit.tests' in
-                                data)
+                self.assertTrue(
+                    '# start.unit.tests -> middle.unit.tests' in data
+                )
                 self.assertTrue('# middle.unit.tests -> unit.tests' in data)
                 self.assertTrue('# unit.tests -> www.unit.tests' in data)
                 self.assertTrue('1.1.1.1	start.unit.tests' in data)
@@ -146,23 +137,23 @@ class TestEtcHostsProvider(TestCase):
         source.populate(zone)
         self.assertEqual(0, len(zone.records))
 
-        record = Record.new(zone, 'start', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'middle.unit.tests.',
-        })
+        record = Record.new(
+            zone,
+            'start',
+            {'ttl': 60, 'type': 'CNAME', 'value': 'middle.unit.tests.'},
+        )
         zone.add_record(record)
-        record = Record.new(zone, 'middle', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'loop.unit.tests.',
-        })
+        record = Record.new(
+            zone,
+            'middle',
+            {'ttl': 60, 'type': 'CNAME', 'value': 'loop.unit.tests.'},
+        )
         zone.add_record(record)
-        record = Record.new(zone, 'loop', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'start.unit.tests.',
-        })
+        record = Record.new(
+            zone,
+            'loop',
+            {'ttl': 60, 'type': 'CNAME', 'value': 'start.unit.tests.'},
+        )
         zone.add_record(record)
 
         with TemporaryDirectory() as td:
@@ -182,9 +173,13 @@ class TestEtcHostsProvider(TestCase):
 
             with open(hosts_file) as fh:
                 data = fh.read()
-                self.assertTrue('# loop.unit.tests -> start.unit.tests '
-                                '**loop**' in data)
-                self.assertTrue('# middle.unit.tests -> loop.unit.tests '
-                                '**loop**' in data)
-                self.assertTrue('# start.unit.tests -> middle.unit.tests '
-                                '**loop**' in data)
+                self.assertTrue(
+                    '# loop.unit.tests -> start.unit.tests ' '**loop**' in data
+                )
+                self.assertTrue(
+                    '# middle.unit.tests -> loop.unit.tests ' '**loop**' in data
+                )
+                self.assertTrue(
+                    '# start.unit.tests -> middle.unit.tests '
+                    '**loop**' in data
+                )
