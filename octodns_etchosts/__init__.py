@@ -2,13 +2,22 @@
 #
 #
 
+from collections import defaultdict
 from os import makedirs, path
 from os.path import isdir
 from logging import getLogger
+import re
 
 from octodns.provider.base import BaseProvider
 
 __VERSION__ = '0.0.1'
+
+
+def _wildcard_match(fqdn, wildcards):
+    for _, _, regex, record in wildcards:
+        if regex.match(fqdn):
+            return record
+    return None
 
 
 class EtcHostsProvider(BaseProvider):
@@ -22,6 +31,18 @@ class EtcHostsProvider(BaseProvider):
         super(EtcHostsProvider, self).__init__(id, *args, **kwargs)
         self.directory = directory
 
+        self._expected_zones = set()
+        self._records = defaultdict(list)
+        self._wildcards = []
+        self._zones = []
+
+        self._a_values = {}
+        self._aaaa_values = {}
+        self._cname_values = {}
+        self._a_wildcards = []
+        self._aaaa_wildcards = []
+        self._cname_wildcards = []
+
     def populate(self, zone, target=False, lenient=False):
         self.log.debug(
             'populate: name=%s, target=%s, lenient=%s',
@@ -30,79 +51,132 @@ class EtcHostsProvider(BaseProvider):
             lenient,
         )
 
+        self._expected_zones.add(zone.name)
+
         # We never act as a source, at least for now, if/when we do we still
         # need to noop `if target`
         return False
 
-    def _apply(self, plan):
-        desired = plan.desired
-        changes = plan.changes
-        self.log.debug(
-            '_apply: zone=%s, len(changes)=%d', desired.name, len(changes)
-        )
-        cnames = {}
-        values = {}
-        for record in sorted([c.new for c in changes]):
-            # Since we don't have existing we'll only see creates
-            fqdn = record.fqdn[:-1]
-            if record._type in ('ALIAS', 'CNAME'):
-                # Store cnames so we can try and look them up in a minute
-                cnames[fqdn] = record.value[:-1]
-            elif record._type == 'AAAA' and fqdn in values:
-                # We'll prefer A over AAAA, skipping rather than replacing an
-                # existing A
-                pass
-            else:
-                # If we're here it's and A or AAAA and we want to record it's
-                # value (maybe replacing if it's an A and we have a AAAA
-                values[fqdn] = record.values[0]
-
+    def _write(self):
         if not isdir(self.directory):
             makedirs(self.directory)
 
-        filepath = path.join(self.directory, desired.name)
-        filename = f'{filepath}hosts'
-        self.log.info('_apply: filename=%s', filename)
-        with open(filename, 'w') as fh:
-            fh.write('##################################################\n')
-            fh.write(f'# octoDNS {self.id} {desired.name}\n')
-            fh.write('##################################################\n\n')
-            if values:
-                fh.write('## A & AAAA\n\n')
-                for fqdn, value in sorted(values.items()):
-                    if fqdn[0] == '*':
-                        fh.write('# ')
-                    fh.write(f'{value}\t{fqdn}\n\n')
+        # Resolve all the records
+        for zone in self._zones:
+            name = zone.name
+            filepath = path.join(self.directory, name)
+            filename = f'{filepath}hosts'
+            self.log.info('_apply: filename=%s', filename)
+            with open(filename, 'w') as fh:
+                fh.write(
+                    '###############################################' '###\n'
+                )
+                fh.write(f'# octoDNS {self.id} {name}\n')
+                fh.write(
+                    '###############################################' '###\n\n'
+                )
 
-            if cnames:
-                fh.write('\n## CNAME (mapped)\n\n')
-                for fqdn, value in sorted(cnames.items()):
-                    # Print out a comment of the first level
-                    fh.write(f'# {fqdn} -> {value}\n')
-                    seen = set()
-                    while True:
-                        seen.add(value)
+                seen = set()
+                for record in sorted(zone.records):
+                    # Ignore AAAAs when we've seen an A with the same fqdn
+                    fqdn = record.fqdn
+                    if fqdn in seen:
+                        continue
+                    seen.add(fqdn)
+
+                    # Follow any symlinks
+                    current = record
+                    stack = [current]
+                    looped = False
+                    while current and current._type in ('ALIAS', 'CNAME'):
+                        value = current.value
                         try:
-                            value = values[value]
-                            # If we're here we've found the target, print it
-                            # and break the loop
-                            fh.write(f'{value}\t{fqdn}\n')
-                            break
-                        except KeyError:
-                            # Try and step down one level
-                            orig = value
-                            value = cnames.get(value, None)
-                            # Print out this step
-                            if value:
-                                if value in seen:
-                                    # We'd loop here, break it
-                                    fh.write(f'# {orig} -> {value} **loop**\n')
-                                    break
-                                else:
-                                    fh.write(f'# {orig} -> {value}\n')
-                            else:
-                                # Don't have anywhere else to go
-                                fh.write(f'# {orig} -> **unknown**\n')
+                            current = self._records[value][0]
+                        except (IndexError, KeyError):
+                            # No exact match, look for wildcards
+                            current = _wildcard_match(value, self._wildcards)
+
+                        if current:
+                            if current in stack:
+                                # Loop, break...
+                                looped = True
                                 break
+                            stack.append(current)
+
+                    # Walk the stack/path
+                    for node in stack:
+                        if node._type in ('ALIAS', 'CNAME'):
+                            fh.write(f'# {node.fqdn} -> {node.value}\n')
+                    # `node` will be the last element in the stack
+
+                    if looped:
+                        # We detected a loop, indicate it
+                        fh.write('# ** loop detected **\n')
+                    elif node._type in ('ALIAS', 'CNAME'):
+                        # We didn't make it all the way to an A/AAAA
+                        fh.write('# ** unavailable **\n')
+                    elif fqdn[0] == '*':
+                        # the record is a wildcard, just add a comment with
+                        # info about it
+                        fh.write(f'# {node.values[0]} -> {fqdn}\n')
+                        fh.write('# ** wildcard **\n')
+                    elif node.fqdn[0] == '*':
+                        # The last node is a wildcard, note that in a commend
+                        # and print the value
+                        fh.write(f'# {node.fqdn}\n')
+                        fh.write(f'{node.values[0]}\t{fqdn}\n')
+                    else:
+                        # The last node is a value node, just print it
+                        fh.write(f'{node.values[0]}\t{fqdn}\n')
 
                     fh.write('\n')
+
+        return
+
+    def _apply(self, plan):
+        # Store the zone with its records
+        desired = plan.desired
+        name = desired.name
+
+        self.log.debug(
+            '_apply: zone=%s, num_records=%d', name, len(plan.changes)
+        )
+
+        # Store it
+        self._zones.append(desired)
+
+        # Add all of its records to our maps
+        for record in desired.records:
+            fqdn = record.fqdn
+            if fqdn[0] == '*':
+                regex = fqdn.replace('.', '\\.')
+                regex = re.compile(rf'^.{regex}$')
+                # We want longest match first, preferring A over AAAA so we'll
+                # prepend some bits to sort by here, the `-` is to reverse
+                # length and still allow type/the sort to be reverse=False
+                n = 1024 - len(fqdn)
+                self._wildcards.append((n, record._type, regex, record))
+            else:
+                self._records[fqdn].append(record)
+
+        # Mark it as seen
+        try:
+            self._expected_zones.remove(name)
+        except KeyError:
+            pass
+
+        if not self._expected_zones:
+            # We've seen everything and we're ready to write out our data
+            self.log.debug('_apply: all zone data collected')
+
+            # Sort A before AAAA, as we prefer A when available. CNAME should
+            # always stand alone
+            for records in self._records.values():
+                records.sort(key=lambda r: r._type)
+
+            # Sort wildcards longest first so that we match most specific
+            self._wildcards.sort()
+
+            self._write()
+
+        return True
