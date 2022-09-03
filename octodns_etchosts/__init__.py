@@ -10,7 +10,7 @@ import re
 
 from octodns.provider.base import BaseProvider
 
-__VERSION__ = '0.0.1'
+__VERSION__ = '0.0.2'
 
 
 def _wildcard_match(fqdn, wildcards):
