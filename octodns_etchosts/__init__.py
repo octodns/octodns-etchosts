@@ -44,8 +44,12 @@ class EtcHostsProvider(BaseProvider):
         self._cname_wildcards = []
 
     def populate(self, zone, target=False, lenient=False):
-        self.log.debug('populate: name=%s, target=%s, lenient=%s', zone.name,
-                       target, lenient)
+        self.log.debug(
+            'populate: name=%s, target=%s, lenient=%s',
+            zone.name,
+            target,
+            lenient,
+        )
 
         self._expected_zones.add(zone.name)
 
@@ -64,11 +68,13 @@ class EtcHostsProvider(BaseProvider):
             filename = f'{filepath}hosts'
             self.log.info('_apply: filename=%s', filename)
             with open(filename, 'w') as fh:
-                fh.write('###############################################'
-                         '###\n')
+                fh.write(
+                    '###############################################' '###\n'
+                )
                 fh.write(f'# octoDNS {self.id} {name}\n')
-                fh.write('###############################################'
-                         '###\n\n')
+                fh.write(
+                    '###############################################' '###\n\n'
+                )
 
                 seen = set()
                 for record in sorted(zone.records):
@@ -132,8 +138,9 @@ class EtcHostsProvider(BaseProvider):
         desired = plan.desired
         name = desired.name
 
-        self.log.debug('_apply: zone=%s, num_records=%d', name,
-                       len(plan.changes))
+        self.log.debug(
+            '_apply: zone=%s, num_records=%d', name, len(plan.changes)
+        )
 
         # Store it
         self._zones.append(desired)

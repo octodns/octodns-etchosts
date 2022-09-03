@@ -16,7 +16,6 @@ from octodns_etchosts import EtcHostsProvider
 
 
 class TemporaryDirectory(object):
-
     def __init__(self, delete_on_exit=True):
         self.delete_on_exit = delete_on_exit
 
@@ -32,7 +31,6 @@ class TemporaryDirectory(object):
 
 
 class TestEtcHostsProvider(TestCase):
-
     def test_provider(self):
         source = EtcHostsProvider('test', 'not-used')
 
@@ -45,58 +43,50 @@ class TestEtcHostsProvider(TestCase):
         source.populate(zone)
         self.assertEqual(0, len(zone.records))
 
-        record = Record.new(zone, '', {
-            'ttl': 60,
-            'type': 'ALIAS',
-            'value': 'www.unit.tests.'
-        })
+        record = Record.new(
+            zone, '', {'ttl': 60, 'type': 'ALIAS', 'value': 'www.unit.tests.'}
+        )
         zone.add_record(record)
 
-        record = Record.new(zone, 'www', {
-            'ttl': 60,
-            'type': 'AAAA',
-            'value': '2001:4860:4860::8888',
-        })
+        record = Record.new(
+            zone,
+            'www',
+            {'ttl': 60, 'type': 'AAAA', 'value': '2001:4860:4860::8888'},
+        )
         zone.add_record(record)
-        record = Record.new(zone, 'www', {
-            'ttl': 60,
-            'type': 'A',
-            'values': ['1.1.1.1', '2.2.2.2'],
-        })
-        zone.add_record(record)
-
-        record = record.new(zone, 'v6', {
-            'ttl': 60,
-            'type': 'AAAA',
-            'value': '2001:4860:4860::8844',
-        })
+        record = Record.new(
+            zone,
+            'www',
+            {'ttl': 60, 'type': 'A', 'values': ['1.1.1.1', '2.2.2.2']},
+        )
         zone.add_record(record)
 
-        record = record.new(zone, 'start', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'middle.unit.tests.',
-        })
-        zone.add_record(record)
-        record = record.new(zone, 'middle', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'unit.tests.',
-        })
+        record = record.new(
+            zone,
+            'v6',
+            {'ttl': 60, 'type': 'AAAA', 'value': '2001:4860:4860::8844'},
+        )
         zone.add_record(record)
 
-        record = record.new(zone, 'ext', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'github.com.',
-        })
+        record = record.new(
+            zone,
+            'start',
+            {'ttl': 60, 'type': 'CNAME', 'value': 'middle.unit.tests.'},
+        )
+        zone.add_record(record)
+        record = record.new(
+            zone, 'middle', {'ttl': 60, 'type': 'CNAME', 'value': 'unit.tests.'}
+        )
         zone.add_record(record)
 
-        record = record.new(zone, '*', {
-            'ttl': 60,
-            'type': 'A',
-            'value': '3.3.3.3',
-        })
+        record = record.new(
+            zone, 'ext', {'ttl': 60, 'type': 'CNAME', 'value': 'github.com.'}
+        )
+        zone.add_record(record)
+
+        record = record.new(
+            zone, '*', {'ttl': 60, 'type': 'A', 'value': '3.3.3.3'}
+        )
         zone.add_record(record)
 
         with TemporaryDirectory() as td:
@@ -117,18 +107,19 @@ class TestEtcHostsProvider(TestCase):
             with open(hosts_file) as fh:
                 data = fh.read()
                 # v6
-                self.assertTrue('2001:4860:4860::8844\tv6.unit.tests' in data)
+                self.assertTrue('2001:4860:4860::8844\tv6.unit.tests.' in data)
                 # www
-                self.assertTrue('1.1.1.1\twww.unit.tests' in data)
+                self.assertTrue('1.1.1.1\twww.unit.tests.' in data)
                 # root ALIAS
                 self.assertTrue('# unit.tests. -> www.unit.tests.' in data)
-                self.assertTrue('1.1.1.1\tunit.tests' in data)
+                self.assertTrue('1.1.1.1\tunit.tests.' in data)
 
-                self.assertTrue('# start.unit.tests. -> middle.unit.tests.' in
-                                data)
+                self.assertTrue(
+                    '# start.unit.tests. -> middle.unit.tests.' in data
+                )
                 self.assertTrue('# middle.unit.tests. -> unit.tests.' in data)
                 self.assertTrue('# unit.tests. -> www.unit.tests.' in data)
-                self.assertTrue('1.1.1.1	start.unit.tests' in data)
+                self.assertTrue('1.1.1.1	start.unit.tests.' in data)
 
             # second empty run that won't create dirs and overwrites file
             plan = Plan(zone, zone, [], True)
@@ -137,20 +128,20 @@ class TestEtcHostsProvider(TestCase):
     def test_cname_other_zone(self):
         zone = Zone('unit.tests.', [])
 
-        record = Record.new(zone, 'source', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'target.other.tests.',
-        })
+        record = Record.new(
+            zone,
+            'source',
+            {'ttl': 60, 'type': 'CNAME', 'value': 'target.other.tests.'},
+        )
         zone.add_record(record)
 
         other_zone = Zone('other.tests.', [])
 
-        record = Record.new(other_zone, 'target', {
-            'ttl': 60,
-            'type': 'A',
-            'values': ['1.1.1.1', '2.2.2.2'],
-        })
+        record = Record.new(
+            other_zone,
+            'target',
+            {'ttl': 60, 'type': 'A', 'values': ['1.1.1.1', '2.2.2.2']},
+        )
         other_zone.add_record(record)
 
         with TemporaryDirectory() as td:
@@ -177,49 +168,49 @@ class TestEtcHostsProvider(TestCase):
             with open(hosts_file) as fh:
                 data = fh.read()
                 # CNAME to other zone
-                self.assertTrue('# source.unit.tests. -> target.other.tests.\n'
-                                '1.1.1.1\tsource.unit.tests' in data)
+                self.assertTrue(
+                    '# source.unit.tests. -> target.other.tests.\n'
+                    '1.1.1.1\tsource.unit.tests.' in data
+                )
 
     def test_cnames_and_wildcards(self):
         zone = Zone('unit.tests.', [])
 
-        record = Record.new(zone, '*.sub', {
-            'ttl': 60,
-            'type': 'A',
-            'value': '1.2.3.4',
-        })
+        record = Record.new(
+            zone, '*.sub', {'ttl': 60, 'type': 'A', 'value': '1.2.3.4'}
+        )
         zone.add_record(record)
 
         # One that matches a wildcard
-        record = Record.new(zone, 'yep', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'foo.sub.unit.tests.',
-        })
+        record = Record.new(
+            zone,
+            'yep',
+            {'ttl': 60, 'type': 'CNAME', 'value': 'foo.sub.unit.tests.'},
+        )
         zone.add_record(record)
 
         # One that doesn't match anything
-        record = Record.new(zone, 'nope', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'foo.not.unit.tests.',
-        })
+        record = Record.new(
+            zone,
+            'nope',
+            {'ttl': 60, 'type': 'CNAME', 'value': 'foo.not.unit.tests.'},
+        )
         zone.add_record(record)
 
         # Wildcard CNAME
-        record = Record.new(zone, '*.cname', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'foo.sub.unit.tests.',
-        })
+        record = Record.new(
+            zone,
+            '*.cname',
+            {'ttl': 60, 'type': 'CNAME', 'value': 'foo.sub.unit.tests.'},
+        )
         zone.add_record(record)
 
         # Something that matches the CNAME wildcard
-        record = Record.new(zone, 'yes', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'foo.cname.unit.tests.',
-        })
+        record = Record.new(
+            zone,
+            'yes',
+            {'ttl': 60, 'type': 'CNAME', 'value': 'foo.cname.unit.tests.'},
+        )
         zone.add_record(record)
 
         with TemporaryDirectory() as td:
@@ -240,21 +231,29 @@ class TestEtcHostsProvider(TestCase):
             with open(hosts_file) as fh:
                 data = fh.read()
                 # wildcard is there
-                self.assertTrue('# 1.2.3.4 -> *.sub.unit.tests.\n'
-                                '# ** wildcard **' in data)
+                self.assertTrue(
+                    '# 1.2.3.4 -> *.sub.unit.tests.\n'
+                    '# ** wildcard **' in data
+                )
                 # CNAME that matches a wildcard
-                self.assertTrue('# nope.unit.tests. -> foo.not.unit.tests.\n'
-                                '# ** unavailable **' in data)
+                self.assertTrue(
+                    '# nope.unit.tests. -> foo.not.unit.tests.\n'
+                    '# ** unavailable **' in data
+                )
                 # CNAME that matches a wildcard
-                self.assertTrue('# yep.unit.tests. -> foo.sub.unit.tests.\n'
-                                '# *.sub.unit.tests.\n'
-                                '1.2.3.4\tyep.unit.tests' in data)
+                self.assertTrue(
+                    '# yep.unit.tests. -> foo.sub.unit.tests.\n'
+                    '# *.sub.unit.tests.\n'
+                    '1.2.3.4\tyep.unit.tests' in data
+                )
                 # CNAME wildcard
-                self.assertTrue('# yes.unit.tests. -> foo.cname.unit.tests.\n'
-                                '# *.cname.unit.tests. -> '
-                                'foo.sub.unit.tests.\n'
-                                '# *.sub.unit.tests.\n'
-                                '1.2.3.4\tyes.unit.tests.')
+                self.assertTrue(
+                    '# yes.unit.tests. -> foo.cname.unit.tests.\n'
+                    '# *.cname.unit.tests. -> '
+                    'foo.sub.unit.tests.\n'
+                    '# *.sub.unit.tests.\n'
+                    '1.2.3.4\tyes.unit.tests.'
+                )
 
     def test_cname_loop(self):
         source = EtcHostsProvider('test', 'not-used')
@@ -268,23 +267,23 @@ class TestEtcHostsProvider(TestCase):
         source.populate(zone)
         self.assertEqual(0, len(zone.records))
 
-        record = Record.new(zone, 'start', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'middle.unit.tests.',
-        })
+        record = Record.new(
+            zone,
+            'start',
+            {'ttl': 60, 'type': 'CNAME', 'value': 'middle.unit.tests.'},
+        )
         zone.add_record(record)
-        record = Record.new(zone, 'middle', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'loop.unit.tests.',
-        })
+        record = Record.new(
+            zone,
+            'middle',
+            {'ttl': 60, 'type': 'CNAME', 'value': 'loop.unit.tests.'},
+        )
         zone.add_record(record)
-        record = Record.new(zone, 'loop', {
-            'ttl': 60,
-            'type': 'CNAME',
-            'value': 'start.unit.tests.',
-        })
+        record = Record.new(
+            zone,
+            'loop',
+            {'ttl': 60, 'type': 'CNAME', 'value': 'start.unit.tests.'},
+        )
         zone.add_record(record)
 
         with TemporaryDirectory() as td:
@@ -304,9 +303,16 @@ class TestEtcHostsProvider(TestCase):
 
             with open(hosts_file) as fh:
                 data = fh.read()
-                self.assertTrue('# loop.unit.tests. -> start.unit.tests.\n'
-                                '# ** loop detected **' in data)
-                self.assertTrue('# middle.unit.tests. -> loop.unit.tests.\n'
-                                '# ** loop detected **' in data)
-                self.assertTrue('# start.unit.tests. -> middle.unit.tests.\n'
-                                '# ** loop detected **' in data)
+                print(data)
+                self.assertTrue(
+                    '# loop.unit.tests. -> start.unit.tests.\n# ** loop detected **'
+                    in data
+                )
+                self.assertTrue(
+                    '# middle.unit.tests. -> loop.unit.tests.\n# ** loop detected **'
+                    in data
+                )
+                self.assertTrue(
+                    '# start.unit.tests. -> middle.unit.tests.\n# ** loop detected **'
+                    in data
+                )

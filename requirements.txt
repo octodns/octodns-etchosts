@@ -2,6 +2,6 @@ PyYAML==6.0
 dnspython==2.2.1
 fqdn==1.5.1
 natsort==8.1.0
-octodns==0.9.16
+octodns==0.9.17
 python-dateutil==2.8.2
 six==1.16.0
