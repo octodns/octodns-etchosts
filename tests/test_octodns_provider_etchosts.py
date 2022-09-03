@@ -235,7 +235,7 @@ class TestEtcHostsProvider(TestCase):
                     '# 1.2.3.4 -> *.sub.unit.tests.\n'
                     '# ** wildcard **' in data
                 )
-                # CNAME that matches a wildcard
+                # CNAME that doesn't match anything
                 self.assertTrue(
                     '# nope.unit.tests. -> foo.not.unit.tests.\n'
                     '# ** unavailable **' in data
@@ -246,7 +246,8 @@ class TestEtcHostsProvider(TestCase):
                     '# *.sub.unit.tests.\n'
                     '1.2.3.4\tyep.unit.tests' in data
                 )
-                # CNAME wildcard
+                # CNAME wildcard in the middle of the path, and ends with an A
+                # wildcard
                 self.assertTrue(
                     '# yes.unit.tests. -> foo.cname.unit.tests.\n'
                     '# *.cname.unit.tests. -> '
@@ -305,14 +306,14 @@ class TestEtcHostsProvider(TestCase):
                 data = fh.read()
                 print(data)
                 self.assertTrue(
-                    '# loop.unit.tests. -> start.unit.tests.\n# ** loop detected **'
-                    in data
+                    '# loop.unit.tests. -> start.unit.tests.\n'
+                    '# ** loop detected **' in data
                 )
                 self.assertTrue(
-                    '# middle.unit.tests. -> loop.unit.tests.\n# ** loop detected **'
-                    in data
+                    '# middle.unit.tests. -> loop.unit.tests.\n'
+                    '# ** loop detected **' in data
                 )
                 self.assertTrue(
-                    '# start.unit.tests. -> middle.unit.tests.\n# ** loop detected **'
-                    in data
+                    '# start.unit.tests. -> middle.unit.tests.\n'
+                    '# ** loop detected **' in data
                 )

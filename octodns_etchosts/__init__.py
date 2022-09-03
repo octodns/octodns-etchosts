@@ -61,7 +61,7 @@ class EtcHostsProvider(BaseProvider):
         if not isdir(self.directory):
             makedirs(self.directory)
 
-        # Resolve them all the records
+        # Resolve all the records
         for zone in self._zones:
             name = zone.name
             filepath = path.join(self.directory, name)
