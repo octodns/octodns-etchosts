@@ -28,7 +28,7 @@ class EtcHostsProvider(BaseProvider):
     def __init__(self, id, directory, *args, **kwargs):
         self.log = getLogger(f'EtcHostsProvider[{id}]')
         self.log.debug('__init__: id=%s, directory=%s', id, directory)
-        super(EtcHostsProvider, self).__init__(id, *args, **kwargs)
+        super().__init__(id, *args, **kwargs)
         self.directory = directory
 
         self._expected_zones = set()
