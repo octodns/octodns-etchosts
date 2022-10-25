@@ -68,12 +68,10 @@ class EtcHostsProvider(BaseProvider):
             filename = f'{filepath}hosts'
             self.log.info('_apply: filename=%s', filename)
             with open(filename, 'w') as fh:
-                fh.write(
-                    '###############################################' '###\n'
-                )
+                fh.write('##################################################\n')
                 fh.write(f'# octoDNS {self.id} {name}\n')
                 fh.write(
-                    '###############################################' '###\n\n'
+                    '##################################################\n\n'
                 )
 
                 seen = set()
