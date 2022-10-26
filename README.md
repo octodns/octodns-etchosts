@@ -7,7 +7,7 @@ An [octoDNS](https://github.com/octodns/octodns/) provider that creates a "best 
 #### Command line
 
 ```
-pip install octodns_etchosts
+pip install octodns-etchosts
 ```
 
 #### requirements.txt/setup.py
@@ -19,7 +19,7 @@ Pinning specific versions or SHAs is recommended to avoid unplanned upgrades.
 ```
 # Start with the latest versions and don't just copy what's here
 octodns==0.9.14
-octodns_etchosts==0.0.1
+octodns-etchosts==0.0.1
 ```
 
 ##### SHAs
