@@ -173,7 +173,7 @@ class EtcHostsProvider(BaseProvider):
                 records.sort(key=lambda r: r._type)
 
             # Sort wildcards longest first so that we match most specific
-            self._wildcards.sort()
+            self._wildcards.sort(key=lambda w: w[0:2])
 
             self._write()
 
