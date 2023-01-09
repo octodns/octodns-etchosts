@@ -317,3 +317,40 @@ class TestEtcHostsProvider(TestCase):
                     '# start.unit.tests. -> middle.unit.tests.\n'
                     '# ** loop detected **' in data
                 )
+
+    def test_wildcard_same_length(self):
+        source = EtcHostsProvider('test', 'not-used')
+
+        zone = Zone('unit.tests.', [])
+
+        # We never populate anything, when acting as a source
+        source.populate(zone, target=source)
+        self.assertEqual(0, len(zone.records))
+        # Same if we're acting as a target
+        source.populate(zone)
+        self.assertEqual(0, len(zone.records))
+
+        record = Record.new(
+            zone, '*.www', {'ttl': 60, 'type': 'A', 'value': '3.3.3.3'}
+        )
+        zone.add_record(record)
+
+        record = Record.new(
+            zone, '*.ww2', {'ttl': 60, 'type': 'A', 'value': '3.3.3.3'}
+        )
+        zone.add_record(record)
+
+        with TemporaryDirectory() as td:
+            # Add some subdirs to make sure that it can create them
+            directory = path.join(td.dirname, 'sub', 'dir')
+            hosts_file = path.join(directory, 'unit.tests.hosts')
+            target = EtcHostsProvider('test', directory)
+
+            # We add everything
+            plan = target.plan(zone)
+            self.assertEqual(len(zone.records), len(plan.changes))
+            self.assertFalse(isfile(hosts_file))
+
+            # Now actually do it
+            self.assertEqual(len(zone.records), target.apply(plan))
+            self.assertTrue(isfile(hosts_file))
