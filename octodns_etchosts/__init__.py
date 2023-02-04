@@ -2,11 +2,11 @@
 #
 #
 
+import re
 from collections import defaultdict
+from logging import getLogger
 from os import makedirs, path
 from os.path import isdir
-from logging import getLogger
-import re
 
 from octodns.provider.base import BaseProvider
 
