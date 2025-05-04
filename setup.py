@@ -42,7 +42,7 @@ setup(
         ),
         'test': tests_require,
     },
-    install_requires=('octodns>=0.9.14',),
+    install_requires=('octodns>=1.5.0',),
     license='MIT',
     long_description=long_description,
     long_description_content_type='text/markdown',

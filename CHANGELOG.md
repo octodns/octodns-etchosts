@@ -1,3 +1,7 @@
+## v1.0.0 - 2024-??-?? - ???
+
+* Address pending octoDNS 2.x deprecations, require minimum of 1.5.x
+
 ## v0.0.2 - 2022-09-03 - More detail, across the zones
 
 * Support tracking records across other zones in the same run
