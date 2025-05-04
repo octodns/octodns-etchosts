@@ -11,7 +11,7 @@ from os.path import isdir
 from octodns.provider.base import BaseProvider
 
 # TODO: remove __VERSION__ with the next major version release
-__version__ = __VERSION__ = '0.0.2'
+__version__ = __VERSION__ = '1.0.0'
 
 
 def _wildcard_match(fqdn, wildcards):
