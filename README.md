@@ -36,7 +36,7 @@ octodns-etchosts==0.0.1
 providers:
   etchosts:
     class: octodns_etchosts.EtcHostsProvider
-    # The output director for the hosts file <zone>.hosts
+    # The output directory for the hosts file <zone>.hosts
     directory: ./hosts
 ```
 
