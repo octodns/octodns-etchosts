@@ -26,11 +26,14 @@ class EtcHostsProvider(BaseProvider):
     SUPPORTS_DYNAMIC = False
     SUPPORTS = set(('A', 'AAAA', 'ALIAS', 'CNAME'))
 
-    def __init__(self, id, directory, *args, **kwargs):
+    def __init__(
+        self, id, directory, remove_trailing_dots=False, *args, **kwargs
+    ):
         self.log = getLogger(f'EtcHostsProvider[{id}]')
         self.log.debug('__init__: id=%s, directory=%s', id, directory)
         super().__init__(id, *args, **kwargs)
         self.directory = directory
+        self.remove_trailing_dots = remove_trailing_dots
 
         self._expected_zones = set()
         self._records = defaultdict(list)
@@ -108,6 +111,11 @@ class EtcHostsProvider(BaseProvider):
                             fh.write(f'# {node.fqdn} -> {node.value}\n')
                     # `node` will be the last element in the stack
 
+                    # Strip trailing dots if specified
+                    sanitized_fqdn = fqdn
+                    if self.remove_trailing_dots and sanitized_fqdn[-1] == '.':
+                        sanitized_fqdn = fqdn[0:-1]
+
                     if looped:
                         # We detected a loop, indicate it
                         fh.write('# ** loop detected **\n')
@@ -123,10 +131,10 @@ class EtcHostsProvider(BaseProvider):
                         # The last node is a wildcard, note that in a commend
                         # and print the value
                         fh.write(f'# {node.fqdn}\n')
-                        fh.write(f'{node.values[0]}\t{fqdn}\n')
+                        fh.write(f'{node.values[0]}\t{sanitized_fqdn}\n')
                     else:
                         # The last node is a value node, just print it
-                        fh.write(f'{node.values[0]}\t{fqdn}\n')
+                        fh.write(f'{node.values[0]}\t{sanitized_fqdn}\n')
 
                     fh.write('\n')
 
