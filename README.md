@@ -38,6 +38,10 @@ providers:
     class: octodns_etchosts.EtcHostsProvider
     # The output directory for the hosts file <zone>.hosts
     directory: ./hosts
+    # Remove trailing dots of zone names (e.g. example.com. => example.com)
+    # Avoids problems with certain DNS providers, as the host file format requires an alphanumeric character to be the final character in a hostname.
+    # Default: False
+    remove_trailing_dots: False
 ```
 
 ### Support Information
