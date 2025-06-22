@@ -93,7 +93,7 @@ class TestEtcHostsProvider(TestCase):
             # Add some subdirs to make sure that it can create them
             directory = path.join(td.dirname, 'sub', 'dir')
             hosts_file = path.join(directory, 'unit.tests.hosts')
-            target = EtcHostsProvider('test', directory)
+            target = EtcHostsProvider('test', directory, False)
 
             # We add everything
             plan = target.plan(zone)
@@ -148,7 +148,7 @@ class TestEtcHostsProvider(TestCase):
             # Add some subdirs to make sure that it can create them
             directory = path.join(td.dirname, 'hosts')
             hosts_file = path.join(directory, 'unit.tests.hosts')
-            target = EtcHostsProvider('test', directory)
+            target = EtcHostsProvider('test', directory, False)
 
             # We add everything
             plan = target.plan(zone)
@@ -217,7 +217,7 @@ class TestEtcHostsProvider(TestCase):
             # Add some subdirs to make sure that it can create them
             directory = path.join(td.dirname, 'hosts')
             hosts_file = path.join(directory, 'unit.tests.hosts')
-            target = EtcHostsProvider('test', directory)
+            target = EtcHostsProvider('test', directory, False)
 
             # We add everything
             plan = target.plan(zone)
@@ -354,3 +354,74 @@ class TestEtcHostsProvider(TestCase):
             # Now actually do it
             self.assertEqual(len(zone.records), target.apply(plan))
             self.assertTrue(isfile(hosts_file))
+
+    def test_remove_trailing_dots(self):
+        zone = Zone('unit.tests.', [])
+
+        record = Record.new(
+            zone, '', {'ttl': 60, 'type': 'ALIAS', 'value': 'www.unit.tests.'}
+        )
+        zone.add_record(record)
+
+        record = Record.new(
+            zone,
+            'www',
+            {'ttl': 60, 'type': 'AAAA', 'value': '2001:4860:4860::8888'},
+        )
+        zone.add_record(record)
+        record = Record.new(
+            zone,
+            'www',
+            {'ttl': 60, 'type': 'A', 'values': ['1.1.1.1', '2.2.2.2']},
+        )
+        zone.add_record(record)
+
+        record = record.new(
+            zone,
+            'v6',
+            {'ttl': 60, 'type': 'AAAA', 'value': '2001:4860:4860::8844'},
+        )
+        zone.add_record(record)
+
+        record = record.new(
+            zone,
+            'start',
+            {'ttl': 60, 'type': 'CNAME', 'value': 'middle.unit.tests.'},
+        )
+        zone.add_record(record)
+        record = record.new(
+            zone, 'middle', {'ttl': 60, 'type': 'CNAME', 'value': 'unit.tests.'}
+        )
+        zone.add_record(record)
+
+        with TemporaryDirectory() as td:
+            # Add some subdirs to make sure that it can create them
+            directory = path.join(td.dirname, 'sub', 'dir')
+            hosts_file = path.join(directory, 'unit.tests.hosts')
+            target = EtcHostsProvider('test', directory, True)
+
+            # We add everything
+            plan = target.plan(zone)
+            self.assertEqual(len(zone.records), len(plan.changes))
+            self.assertFalse(isfile(hosts_file))
+
+            # Now actually do it
+            self.assertEqual(len(zone.records), target.apply(plan))
+            self.assertTrue(isfile(hosts_file))
+
+            with open(hosts_file) as fh:
+                data = fh.read()
+                # v6
+                self.assertTrue('2001:4860:4860::8844\tv6.unit.tests\n' in data)
+                # www
+                self.assertTrue('1.1.1.1\twww.unit.tests\n' in data)
+                # root ALIAS
+                self.assertTrue('# unit.tests. -> www.unit.tests.\n' in data)
+                self.assertTrue('1.1.1.1\tunit.tests\n' in data)
+
+                self.assertTrue(
+                    '# start.unit.tests. -> middle.unit.tests.\n' in data
+                )
+                self.assertTrue('# middle.unit.tests. -> unit.tests.\n' in data)
+                self.assertTrue('# unit.tests. -> www.unit.tests.\n' in data)
+                self.assertTrue('1.1.1.1	start.unit.tests\n' in data)
