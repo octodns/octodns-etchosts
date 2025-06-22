@@ -27,7 +27,7 @@ class EtcHostsProvider(BaseProvider):
     SUPPORTS = set(('A', 'AAAA', 'ALIAS', 'CNAME'))
 
     def __init__(
-        self, id, directory, remove_trailing_dots=False, *args, **kwargs
+        self, id, directory, remove_trailing_dots=True, *args, **kwargs
     ):
         self.log = getLogger(f'EtcHostsProvider[{id}]')
         self.log.debug('__init__: id=%s, directory=%s', id, directory)

@@ -93,7 +93,7 @@ class TestEtcHostsProvider(TestCase):
             # Add some subdirs to make sure that it can create them
             directory = path.join(td.dirname, 'sub', 'dir')
             hosts_file = path.join(directory, 'unit.tests.hosts')
-            target = EtcHostsProvider('test', directory)
+            target = EtcHostsProvider('test', directory, False)
 
             # We add everything
             plan = target.plan(zone)
@@ -148,7 +148,7 @@ class TestEtcHostsProvider(TestCase):
             # Add some subdirs to make sure that it can create them
             directory = path.join(td.dirname, 'hosts')
             hosts_file = path.join(directory, 'unit.tests.hosts')
-            target = EtcHostsProvider('test', directory)
+            target = EtcHostsProvider('test', directory, False)
 
             # We add everything
             plan = target.plan(zone)
@@ -217,7 +217,7 @@ class TestEtcHostsProvider(TestCase):
             # Add some subdirs to make sure that it can create them
             directory = path.join(td.dirname, 'hosts')
             hosts_file = path.join(directory, 'unit.tests.hosts')
-            target = EtcHostsProvider('test', directory)
+            target = EtcHostsProvider('test', directory, False)
 
             # We add everything
             plan = target.plan(zone)
