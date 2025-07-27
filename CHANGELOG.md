@@ -1,9 +1,3 @@
-## v1.?.0 - 2025-??-?? - ???
-
-* Omit trailing . from entries to match the requirement that names end in an
-  alphanumeric character, per the manpage/spec. Previous behavior of trailing
-  dots is available with remove_trailing_dots=False
-
 ## v1.0.0 - 2025-05-04 - Long overdue 1.0
 
 * Address pending octoDNS 2.x deprecations, require minimum of 1.5.x
